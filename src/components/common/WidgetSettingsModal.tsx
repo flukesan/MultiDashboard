@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Widget } from '@/types';
+import { Widget, DataSourceConfig as DataSourceConfigType } from '@/types';
 import {
   Dialog,
   DialogContent,
@@ -11,6 +11,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { DataSourceConfig } from './DataSourceConfig';
 
 interface WidgetSettingsModalProps {
   widget: Widget;
@@ -27,9 +28,10 @@ export function WidgetSettingsModal({
 }: WidgetSettingsModalProps) {
   const [title, setTitle] = useState(widget.config.title || '');
   const [description, setDescription] = useState(widget.config.description || '');
-  const [dataSourceUrl, setDataSourceUrl] = useState(
-    widget.dataSource?.config.type === 'rest' ? widget.dataSource.config.url : ''
+  const [dataSourceConfig, setDataSourceConfig] = useState<DataSourceConfigType | null>(
+    widget.dataSource?.config || null
   );
+  const [showDataSource, setShowDataSource] = useState(false);
 
   const handleSave = () => {
     const updates: Partial<Widget> = {
@@ -40,14 +42,11 @@ export function WidgetSettingsModal({
       },
     };
 
-    // Update data source if REST API
-    if (widget.dataSource?.config.type === 'rest' && dataSourceUrl) {
+    // Update data source if configured
+    if (dataSourceConfig) {
       updates.dataSource = {
-        ...widget.dataSource,
-        config: {
-          ...widget.dataSource.config,
-          url: dataSourceUrl,
-        },
+        config: dataSourceConfig,
+        transformer: widget.dataSource?.transformer,
       };
     }
 
@@ -57,7 +56,7 @@ export function WidgetSettingsModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader onClose={() => onOpenChange(false)}>
           <DialogTitle>Widget Settings</DialogTitle>
           <DialogDescription>
@@ -78,7 +77,7 @@ export function WidgetSettingsModal({
 
           {/* Description */}
           <div className="space-y-2">
-            <label className="text-sm font-medium">Description</label>
+            <label className="text-sm font-medium">Description (optional)</label>
             <Textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
@@ -87,30 +86,63 @@ export function WidgetSettingsModal({
             />
           </div>
 
-          {/* Data Source (only for REST) */}
-          {widget.dataSource?.config.type === 'rest' && (
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Data Source URL</label>
-              <Input
-                value={dataSourceUrl}
-                onChange={(e) => setDataSourceUrl(e.target.value)}
-                placeholder="https://api.example.com/data"
-              />
-              <p className="text-xs text-muted-foreground">
-                Enter the REST API endpoint for this widget
-              </p>
+          {/* Data Source Section */}
+          <div className="border-t pt-4">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-sm font-medium">Data Source</h3>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowDataSource(!showDataSource)}
+              >
+                {showDataSource ? 'Hide' : 'Configure'}
+              </Button>
             </div>
-          )}
 
-          {/* Data Source Type Info */}
-          {widget.dataSource && (
-            <div className="rounded-md bg-muted p-3">
-              <p className="text-xs font-medium">Data Source Type</p>
-              <p className="text-xs text-muted-foreground capitalize">
-                {widget.dataSource.config.type}
-              </p>
-            </div>
-          )}
+            {/* Show current data source info when collapsed */}
+            {!showDataSource && dataSourceConfig && (
+              <div className="rounded-md bg-muted p-3 text-sm">
+                <p className="font-medium">Current: {dataSourceConfig.type.toUpperCase()}</p>
+                {dataSourceConfig.type === 'rest' && (
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {dataSourceConfig.url}
+                  </p>
+                )}
+                {dataSourceConfig.type === 'postgresql' && (
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {dataSourceConfig.username}@{dataSourceConfig.host}:
+                    {dataSourceConfig.port}/{dataSourceConfig.database}
+                  </p>
+                )}
+                {dataSourceConfig.type === 'mysql' && (
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {dataSourceConfig.username}@{dataSourceConfig.host}:
+                    {dataSourceConfig.port}/{dataSourceConfig.database}
+                  </p>
+                )}
+                {dataSourceConfig.type === 'mqtt' && (
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {dataSourceConfig.brokerUrl} → {dataSourceConfig.topic}
+                  </p>
+                )}
+                {dataSourceConfig.type === 'influxdb' && (
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {dataSourceConfig.org}/{dataSourceConfig.bucket}
+                  </p>
+                )}
+              </div>
+            )}
+
+            {/* Data Source Configuration Form */}
+            {showDataSource && (
+              <div className="border rounded-lg p-4 bg-muted/30">
+                <DataSourceConfig
+                  value={dataSourceConfig}
+                  onChange={setDataSourceConfig}
+                />
+              </div>
+            )}
+          </div>
         </div>
 
         <DialogFooter>

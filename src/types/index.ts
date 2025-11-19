@@ -71,7 +71,7 @@ export type WidgetConfig =
 
 // ============== Data Source Types ==============
 
-export type DataSourceType = 'rest' | 'graphql' | 'websocket' | 'static';
+export type DataSourceType = 'rest' | 'graphql' | 'websocket' | 'static' | 'postgresql' | 'mqtt' | 'mysql' | 'influxdb';
 
 export interface BaseDataSourceConfig {
   type: DataSourceType;
@@ -108,11 +108,59 @@ export interface StaticDataSourceConfig extends BaseDataSourceConfig {
   data: unknown;
 }
 
+export interface PostgreSQLDataSourceConfig extends BaseDataSourceConfig {
+  type: 'postgresql';
+  host: string;
+  port?: number;
+  database: string;
+  username: string;
+  password: string;
+  query: string;
+  ssl?: boolean;
+}
+
+export interface MySQLDataSourceConfig extends BaseDataSourceConfig {
+  type: 'mysql';
+  host: string;
+  port?: number;
+  database: string;
+  username: string;
+  password: string;
+  query: string;
+  ssl?: boolean;
+}
+
+export interface MQTTDataSourceConfig extends BaseDataSourceConfig {
+  type: 'mqtt';
+  brokerUrl: string;
+  port?: number;
+  topic: string;
+  clientId?: string;
+  username?: string;
+  password?: string;
+  qos?: 0 | 1 | 2;
+  retain?: boolean;
+  clean?: boolean;
+}
+
+export interface InfluxDBDataSourceConfig extends BaseDataSourceConfig {
+  type: 'influxdb';
+  url: string;
+  token: string;
+  org: string;
+  bucket: string;
+  query: string; // Flux query
+}
+
 export type DataSourceConfig =
   | RestDataSourceConfig
   | GraphQLDataSourceConfig
   | WebSocketDataSourceConfig
-  | StaticDataSourceConfig;
+  | StaticDataSourceConfig
+  | PostgreSQLDataSourceConfig
+  | MySQLDataSourceConfig
+  | MQTTDataSourceConfig
+  | InfluxDBDataSourceConfig;
 
 // Data transformer function type
 export type DataTransformer<TInput = unknown, TOutput = unknown> = (
