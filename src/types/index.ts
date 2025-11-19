@@ -63,12 +63,29 @@ export interface TextWidgetConfig extends BaseWidgetConfig {
   align?: 'left' | 'center' | 'right';
 }
 
+export interface ScadaWidgetConfig extends BaseWidgetConfig {
+  scadaConfig?: {
+    equipmentType: ScadaEquipmentType;
+    thresholds?: {
+      warning?: number;
+      alarm?: number;
+    };
+    alarmConditions?: {
+      highLevel?: number;
+      lowLevel?: number;
+      enabled: boolean;
+    };
+    unit?: string;
+  };
+}
+
 export type WidgetConfig =
   | ChartWidgetConfig
   | NumberWidgetConfig
   | MapWidgetConfig
   | TableWidgetConfig
   | TextWidgetConfig
+  | ScadaWidgetConfig
   | BaseWidgetConfig;
 
 // ============== Data Source Types ==============

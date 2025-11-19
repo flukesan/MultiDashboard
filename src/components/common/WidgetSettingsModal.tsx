@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { DataSourceConfig } from './DataSourceConfig';
+import { ScadaConfig } from './ScadaConfig';
 
 interface WidgetSettingsModalProps {
   widget: Widget;
@@ -32,6 +33,11 @@ export function WidgetSettingsModal({
     widget.dataSource?.config || null
   );
   const [showDataSource, setShowDataSource] = useState(false);
+  const [scadaConfig, setScadaConfig] = useState<any>(
+    widget.type === 'scada' && 'scadaConfig' in widget.config
+      ? (widget.config as any).scadaConfig
+      : null
+  );
 
   const handleSave = () => {
     const updates: Partial<Widget> = {
@@ -39,6 +45,7 @@ export function WidgetSettingsModal({
         ...widget.config,
         title,
         description,
+        ...(widget.type === 'scada' && scadaConfig ? { scadaConfig } : {}),
       },
     };
 
@@ -85,6 +92,16 @@ export function WidgetSettingsModal({
               rows={2}
             />
           </div>
+
+          {/* SCADA Configuration - only for SCADA widgets */}
+          {widget.type === 'scada' && (
+            <div className="border-t pt-4">
+              <h3 className="text-sm font-medium mb-3">SCADA Configuration</h3>
+              <div className="border rounded-lg p-4 bg-muted/30">
+                <ScadaConfig value={scadaConfig} onChange={setScadaConfig} />
+              </div>
+            </div>
+          )}
 
           {/* Data Source Section */}
           <div className="border-t pt-4">

@@ -17,10 +17,13 @@ import {
 import { Button } from '@/components/ui/button';
 import { useDashboard } from '@/hooks';
 import { useThemeStore } from '@/store/theme-store';
+import { useAlertStore } from '@/store/alert-store';
+import { AlertNotificationCenter } from '@/components/common/AlertNotification';
 import { WidgetType } from '@/types';
 import { useState, useEffect } from 'react';
 import { DashboardManager } from '@/components/common/DashboardManager';
 import { AutoRotateSettings } from '@/components/common/AutoRotateSettings';
+import { WidgetTypeSelector } from '@/components/common/WidgetTypeSelector';
 
 export function Toolbar() {
   const {
@@ -37,9 +40,11 @@ export function Toolbar() {
     stopAutoRotate,
   } = useDashboard();
   const { mode, toggleMode } = useThemeStore();
+  const { alerts, acknowledgeAlert, removeAlert } = useAlertStore();
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [dashboardManagerOpen, setDashboardManagerOpen] = useState(false);
   const [autoRotateSettingsOpen, setAutoRotateSettingsOpen] = useState(false);
+  const [widgetSelectorOpen, setWidgetSelectorOpen] = useState(false);
 
   console.log('Toolbar render - editMode:', editMode);
 
@@ -147,25 +152,20 @@ export function Toolbar() {
 
           {/* Right side - Controls */}
           <div className="flex items-center space-x-2">
-            {/* Widget add buttons - only in edit mode */}
+            {/* Widget controls - only in edit mode */}
             {editMode && (
               <>
-                <Button variant="outline" size="sm" onClick={() => handleAddWidget('number')}>
+                {/* Add Widget button */}
+                <Button
+                  variant="default"
+                  size="sm"
+                  onClick={() => setWidgetSelectorOpen(true)}
+                >
                   <Plus className="mr-2 h-4 w-4" />
-                  Number
+                  Add Widget
                 </Button>
-                <Button variant="outline" size="sm" onClick={() => handleAddWidget('chart')}>
-                  <Plus className="mr-2 h-4 w-4" />
-                  Chart
-                </Button>
-                <Button variant="outline" size="sm" onClick={() => handleAddWidget('table')}>
-                  <Plus className="mr-2 h-4 w-4" />
-                  Table
-                </Button>
-                <Button variant="outline" size="sm" onClick={() => handleAddWidget('map')}>
-                  <Plus className="mr-2 h-4 w-4" />
-                  Map
-                </Button>
+
+                {/* Save button */}
                 <Button variant="outline" size="sm" onClick={handleSave}>
                   <Save className="mr-2 h-4 w-4" />
                   Save
@@ -234,6 +234,13 @@ export function Toolbar() {
               {isFullscreen ? <Minimize2 className="h-5 w-5" /> : <Maximize2 className="h-5 w-5" />}
             </Button>
 
+            {/* Alert Notification Center */}
+            <AlertNotificationCenter
+              alerts={alerts}
+              onAcknowledge={acknowledgeAlert}
+              onDismiss={removeAlert}
+            />
+
             {/* Theme toggle */}
             <Button variant="ghost" size="icon" onClick={toggleMode}>
               {mode === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
@@ -252,6 +259,13 @@ export function Toolbar() {
       <AutoRotateSettings
         open={autoRotateSettingsOpen}
         onOpenChange={setAutoRotateSettingsOpen}
+      />
+
+      {/* Widget Type Selector Modal */}
+      <WidgetTypeSelector
+        open={widgetSelectorOpen}
+        onOpenChange={setWidgetSelectorOpen}
+        onSelectWidget={handleAddWidget}
       />
     </>
   );
