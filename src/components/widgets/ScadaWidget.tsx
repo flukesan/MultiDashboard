@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
-import { Widget } from '@/types';
+import { Widget, ScadaEquipmentType } from '@/types';
 import { BaseWidget } from './BaseWidget';
 import { AlertTriangle } from 'lucide-react';
+import * as Icons from './scada-icons';
 
 interface ScadaWidgetProps {
   id: string;
@@ -14,8 +15,9 @@ interface ScadaWidgetProps {
 }
 
 interface ScadaData {
-  type: 'tank' | 'pump' | 'valve' | 'motor' | 'sensor';
+  equipmentType: ScadaEquipmentType;
   value: number; // 0-100 for level, 0/1 for on/off
+  active?: boolean; // for boolean equipment
   status: 'normal' | 'warning' | 'alarm' | 'offline';
   label?: string;
   unit?: string;
@@ -34,41 +36,50 @@ export function ScadaWidget({
   onEdit,
   onUpdateTitle,
 }: ScadaWidgetProps) {
+  const scadaConfig = (config as any).scadaConfig || {};
+  const equipmentType = scadaConfig.equipmentType || 'tank';
+  const size = scadaConfig.size || 'medium';
+  const rotation = scadaConfig.rotation || 0;
+  const unit = scadaConfig.unit || '%';
+  const label = scadaConfig.label || config.title || 'Equipment';
+
   const [data, setData] = useState<ScadaData>({
-    type: 'tank',
+    equipmentType,
     value: 75,
+    active: true,
     status: 'normal',
-    label: 'Tank 1',
-    unit: '%',
+    label,
+    unit,
   });
 
   const [blink, setBlink] = useState(false);
 
-  // Fetch data from dataSource
+  // Fetch data from dataSource or use mock data
   useEffect(() => {
+    if (dataSource) {
+      // Real implementation would fetch from dataSource
+      // For now, use mock data
+    }
+
     // Mock data for demonstration
-    // In real implementation, this would fetch from dataSource
     const mockData: ScadaData = {
-      type: 'tank',
-      value: Math.random() * 100,
-      status: Math.random() > 0.7 ? 'alarm' : 'normal',
-      label: config.title || 'Equipment',
-      unit: '%',
-      alarm:
-        Math.random() > 0.7
-          ? { active: true, message: 'High Level Warning!' }
-          : undefined,
+      equipmentType,
+      value: 50 + Math.random() * 40,
+      active: Math.random() > 0.3,
+      status: Math.random() > 0.8 ? 'alarm' : Math.random() > 0.6 ? 'warning' : 'normal',
+      label,
+      unit,
     };
 
     setData(mockData);
-  }, [dataSource, config.title]);
+  }, [dataSource, equipmentType, label, unit]);
 
   // Blinking animation for alarms
   useEffect(() => {
     if (data.status === 'alarm' || data.alarm?.active) {
       const interval = setInterval(() => {
         setBlink((prev) => !prev);
-      }, 500); // Blink every 500ms
+      }, 500);
 
       return () => clearInterval(interval);
     } else {
@@ -89,29 +100,83 @@ export function ScadaWidget({
     }
   };
 
+  const getSizeClass = () => {
+    const sizeMap: Record<'small' | 'medium' | 'large' | 'xlarge', string> = {
+      small: 'max-w-[150px]',
+      medium: 'max-w-[250px]',
+      large: 'max-w-[350px]',
+      xlarge: 'max-w-[450px]',
+    };
+    return sizeMap[size as keyof typeof sizeMap] || sizeMap.medium;
+  };
+
   const renderEquipment = () => {
     const statusColor = getStatusColor();
-    const isActive = data.value > 0;
+    const isActive = data.active ?? data.value > 50;
+    const iconProps = {
+      color: statusColor,
+      blink,
+      rotation,
+    };
 
-    switch (data.type) {
-      case 'tank':
-        return <TankIcon value={data.value} color={statusColor} blink={blink} />;
+    // Map equipment type to icon component
+    const iconMap: Record<string, any> = {
+      // Vessels & Tanks (use value for level)
+      'tank': () => <Icons.TankIcon {...iconProps} value={data.value} />,
 
-      case 'pump':
-        return <PumpIcon active={isActive} color={statusColor} blink={blink} />;
+      // Rotating Equipment (use active state)
+      'pump': () => <Icons.PumpIcon {...iconProps} active={isActive} />,
+      'motor': () => <Icons.MotorIcon {...iconProps} active={isActive} />,
+      'compressor': () => <Icons.CompressorIcon {...iconProps} active={isActive} />,
 
-      case 'valve':
-        return <ValveIcon active={isActive} color={statusColor} blink={blink} />;
+      // Pipes & Fittings
+      'pipe-horizontal': () => <Icons.PipeHorizontalIcon {...iconProps} />,
+      'pipe-vertical': () => <Icons.PipeVerticalIcon {...iconProps} />,
+      'pipe-elbow': () => <Icons.PipeElbowIcon {...iconProps} />,
+      'pipe-t-junction': () => <Icons.PipeTJunctionIcon {...iconProps} />,
+      'pipe-cross': () => <Icons.PipeCrossIcon {...iconProps} />,
 
-      case 'motor':
-        return <MotorIcon active={isActive} color={statusColor} blink={blink} />;
+      // Valves (use active for open/close state)
+      'valve': () => <Icons.ValveIcon {...iconProps} active={isActive} />,
+      'valve-gate': () => <Icons.ValveGateIcon {...iconProps} active={isActive} />,
+      'valve-ball': () => <Icons.ValveBallIcon {...iconProps} active={isActive} />,
+      'valve-check': () => <Icons.ValveCheckIcon {...iconProps} />,
+      'valve-butterfly': () => <Icons.ValveButterflyIcon {...iconProps} active={isActive} />,
 
-      case 'sensor':
-        return <SensorIcon value={data.value} color={statusColor} blink={blink} />;
+      // Controls
+      'button': () => <Icons.ButtonIcon {...iconProps} active={isActive} />,
+      'switch': () => <Icons.SwitchIcon {...iconProps} active={isActive} />,
+      'indicator': () => <Icons.IndicatorIcon {...iconProps} active={isActive} />,
+      'led': () => <Icons.LEDIcon {...iconProps} active={isActive} />,
 
-      default:
-        return null;
-    }
+      // Instruments (use value for readings)
+      'sensor': () => <Icons.SensorIcon {...iconProps} value={data.value} />,
+      'flow-meter': () => <Icons.FlowMeterIcon {...iconProps} value={data.value} />,
+      'pressure-gauge': () => <Icons.PressureGaugeIcon {...iconProps} value={data.value} />,
+      'temperature-sensor': () => <Icons.TemperatureSensorIcon {...iconProps} value={data.value} />,
+
+      // Process Equipment
+      'heat-exchanger': () => <Icons.HeatExchangerIcon {...iconProps} />,
+      'filter': () => <Icons.FilterIcon {...iconProps} />,
+    };
+
+    const IconComponent = iconMap[equipmentType];
+    return IconComponent ? IconComponent() : (
+      <div className="text-muted-foreground text-sm">Unknown equipment type: {equipmentType}</div>
+    );
+  };
+
+  // Check if equipment shows numeric value
+  const showsValue = () => {
+    const valueTypes = ['tank', 'sensor', 'flow-meter', 'pressure-gauge', 'temperature-sensor'];
+    return valueTypes.includes(equipmentType);
+  };
+
+  // Check if equipment shows active state
+  const showsActiveState = () => {
+    const activeTypes = ['pump', 'motor', 'compressor', 'valve', 'valve-gate', 'valve-ball',
+                         'valve-butterfly', 'button', 'switch', 'indicator', 'led'];
+    return activeTypes.includes(equipmentType);
   };
 
   return (
@@ -123,24 +188,47 @@ export function ScadaWidget({
       onEdit={onEdit}
       onUpdateTitle={onUpdateTitle}
     >
-      <div className="flex flex-col items-center justify-center h-full p-4">
-        {/* Equipment SVG */}
-        <div className="w-full max-w-[200px] mb-4">{renderEquipment()}</div>
-
-        {/* Value Display */}
-        <div className="text-center">
-          <div className="text-3xl font-bold" style={{ color: getStatusColor() }}>
-            {data.value.toFixed(1)}
-            {data.unit && <span className="text-lg ml-1">{data.unit}</span>}
-          </div>
-          {data.label && (
-            <div className="text-sm text-muted-foreground mt-1">{data.label}</div>
-          )}
+      <div className="flex flex-col items-center justify-center h-full p-4 w-full">
+        {/* Equipment SVG - full width with size control */}
+        <div className={`w-full ${getSizeClass()} mx-auto mb-4`}>
+          {renderEquipment()}
         </div>
+
+        {/* Equipment Label */}
+        {label && (
+          <div className="text-lg font-semibold text-center mb-2" style={{ color: getStatusColor() }}>
+            {label}
+          </div>
+        )}
+
+        {/* Value Display - only for equipment with numeric values */}
+        {showsValue() && (
+          <div className="text-center mb-2">
+            <div className="text-3xl font-bold" style={{ color: getStatusColor() }}>
+              {data.value.toFixed(1)}
+              {unit && <span className="text-lg ml-1">{unit}</span>}
+            </div>
+          </div>
+        )}
+
+        {/* Active State Display - only for equipment with on/off states */}
+        {showsActiveState() && (
+          <div className="text-center mb-2">
+            <div
+              className="inline-block px-4 py-1 rounded-full text-sm font-medium"
+              style={{
+                backgroundColor: `${getStatusColor()}20`,
+                color: getStatusColor(),
+              }}
+            >
+              {data.active ? 'ACTIVE' : 'INACTIVE'}
+            </div>
+          </div>
+        )}
 
         {/* Status Badge */}
         <div
-          className="mt-3 px-3 py-1 rounded-full text-xs font-medium"
+          className="px-3 py-1 rounded-full text-xs font-medium"
           style={{
             backgroundColor: `${getStatusColor()}20`,
             color: getStatusColor(),
@@ -161,284 +249,14 @@ export function ScadaWidget({
             <span className="text-xs text-red-500 font-medium">{data.alarm.message}</span>
           </div>
         )}
+
+        {/* Help text in edit mode */}
+        {editMode && (
+          <div className="mt-4 text-xs text-muted-foreground text-center max-w-xs">
+            Click settings to change equipment type, size, and rotation
+          </div>
+        )}
       </div>
     </BaseWidget>
-  );
-}
-
-// ========== Equipment Icon Components ==========
-
-interface IconProps {
-  color: string;
-  blink: boolean;
-}
-
-// Tank Icon with liquid level
-function TankIcon({ value, color, blink }: IconProps & { value: number }) {
-  const liquidHeight = (value / 100) * 100; // SVG height
-
-  return (
-    <svg viewBox="0 0 200 200" className="w-full">
-      {/* Tank body */}
-      <rect
-        x="50"
-        y="40"
-        width="100"
-        height="120"
-        fill="none"
-        stroke={color}
-        strokeWidth="3"
-        rx="5"
-        opacity={blink ? 0.7 : 1}
-        style={{ transition: 'opacity 0.3s ease' }}
-      />
-
-      {/* Liquid */}
-      <rect
-        x="50"
-        y={160 - liquidHeight}
-        width="100"
-        height={liquidHeight}
-        fill={color}
-        opacity={blink ? 0.5 : 0.3}
-        style={{ transition: 'height 1s ease, y 1s ease, opacity 0.3s ease' }}
-      />
-
-      {/* Level markers */}
-      {[25, 50, 75].map((level) => (
-        <line
-          key={level}
-          x1="50"
-          x2="60"
-          y1={160 - level}
-          y2={160 - level}
-          stroke={color}
-          strokeWidth="1"
-          opacity="0.5"
-        />
-      ))}
-
-      {/* Bottom pipe */}
-      <rect x="90" y="160" width="20" height="30" fill={color} opacity="0.5" />
-    </svg>
-  );
-}
-
-// Pump Icon with rotation animation
-function PumpIcon({ active, color, blink }: IconProps & { active: boolean }) {
-  return (
-    <svg viewBox="0 0 200 200" className="w-full">
-      {/* Pump body */}
-      <circle
-        cx="100"
-        cy="100"
-        r="40"
-        fill="none"
-        stroke={color}
-        strokeWidth="3"
-        opacity={blink ? 0.7 : 1}
-        style={{ transition: 'opacity 0.3s ease' }}
-      />
-
-      {/* Impeller (rotating) */}
-      <g
-        transform="translate(100, 100)"
-        style={{
-          animation: active ? 'spin 2s linear infinite' : 'none',
-        }}
-      >
-        {[0, 120, 240].map((angle) => (
-          <line
-            key={angle}
-            x1="0"
-            y1="0"
-            x2="0"
-            y2="-30"
-            stroke={color}
-            strokeWidth="3"
-            strokeLinecap="round"
-            transform={`rotate(${angle})`}
-          />
-        ))}
-      </g>
-
-      {/* Inlet pipe */}
-      <rect x="20" y="90" width="40" height="20" fill={color} opacity="0.5" />
-
-      {/* Outlet pipe */}
-      <rect x="140" y="90" width="40" height="20" fill={color} opacity="0.5" />
-
-      <style>{`
-        @keyframes spin {
-          from { transform: rotate(0deg); }
-          to { transform: rotate(360deg); }
-        }
-      `}</style>
-    </svg>
-  );
-}
-
-// Valve Icon with open/close animation
-function ValveIcon({ active, color, blink }: IconProps & { active: boolean }) {
-  return (
-    <svg viewBox="0 0 200 200" className="w-full">
-      {/* Pipe horizontal */}
-      <rect x="20" y="90" width="160" height="20" fill={color} opacity="0.5" />
-
-      {/* Valve body */}
-      <rect
-        x="80"
-        y="70"
-        width="40"
-        height="60"
-        fill="none"
-        stroke={color}
-        strokeWidth="3"
-        opacity={blink ? 0.7 : 1}
-        style={{ transition: 'opacity 0.3s ease' }}
-      />
-
-      {/* Valve disc (rotates when opening/closing) */}
-      <ellipse
-        cx="100"
-        cy="100"
-        rx={active ? '2' : '18'}
-        ry="18"
-        fill={color}
-        opacity="0.7"
-        style={{ transition: 'rx 0.5s ease' }}
-      />
-
-      {/* Handle */}
-      <line
-        x1="100"
-        y1="70"
-        x2="100"
-        y2={active ? '40' : '50'}
-        stroke={color}
-        strokeWidth="3"
-        strokeLinecap="round"
-        style={{ transition: 'y2 0.5s ease' }}
-      />
-      <circle cx="100" cy={active ? '40' : '50'} r="5" fill={color} />
-    </svg>
-  );
-}
-
-// Motor Icon with rotation
-function MotorIcon({ active, color, blink }: IconProps & { active: boolean }) {
-  return (
-    <svg viewBox="0 0 200 200" className="w-full">
-      {/* Motor housing */}
-      <rect
-        x="60"
-        y="70"
-        width="80"
-        height="60"
-        fill="none"
-        stroke={color}
-        strokeWidth="3"
-        rx="5"
-        opacity={blink ? 0.7 : 1}
-        style={{ transition: 'opacity 0.3s ease' }}
-      />
-
-      {/* Cooling fins */}
-      {[75, 85, 95, 105, 115, 125].map((y) => (
-        <line
-          key={y}
-          x1="60"
-          x2="140"
-          y1={y}
-          y2={y}
-          stroke={color}
-          strokeWidth="1"
-          opacity="0.3"
-        />
-      ))}
-
-      {/* Shaft */}
-      <rect x="140" y="95" width="30" height="10" fill={color} opacity="0.7" />
-
-      {/* Rotation indicator */}
-      <g
-        transform="translate(155, 100)"
-        style={{
-          animation: active ? 'spin 1s linear infinite' : 'none',
-        }}
-      >
-        <circle cx="0" cy="0" r="8" fill="none" stroke={color} strokeWidth="2" />
-        <line x1="0" y1="0" x2="0" y2="-8" stroke={color} strokeWidth="2" />
-      </g>
-
-      {/* Terminal box */}
-      <rect x="85" y="50" width="30" height="20" fill={color} opacity="0.3" />
-    </svg>
-  );
-}
-
-// Sensor Icon with pulse animation
-function SensorIcon({ value, color, blink }: IconProps & { value: number }) {
-  const intensity = value / 100;
-
-  return (
-    <svg viewBox="0 0 200 200" className="w-full">
-      {/* Sensor body */}
-      <rect
-        x="80"
-        y="60"
-        width="40"
-        height="80"
-        fill="none"
-        stroke={color}
-        strokeWidth="3"
-        rx="20"
-        opacity={blink ? 0.7 : 1}
-        style={{ transition: 'opacity 0.3s ease' }}
-      />
-
-      {/* Sensing element */}
-      <circle
-        cx="100"
-        cy="100"
-        r={12}
-        fill={color}
-        opacity={0.3 + intensity * 0.7}
-        style={{
-          animation: value > 80 ? 'pulse 1s ease-in-out infinite' : 'none',
-        }}
-      />
-
-      {/* Signal waves */}
-      {[1, 2, 3].map((i) => (
-        <circle
-          key={i}
-          cx="100"
-          cy="100"
-          r={15 + i * 10}
-          fill="none"
-          stroke={color}
-          strokeWidth="2"
-          opacity={Math.max(0, intensity - i * 0.2)}
-          style={{
-            animation: value > 50 ? `ripple 2s ease-out infinite ${i * 0.3}s` : 'none',
-          }}
-        />
-      ))}
-
-      {/* Cable */}
-      <line x1="100" y1="140" x2="100" y2="170" stroke={color} strokeWidth="2" />
-
-      <style>{`
-        @keyframes pulse {
-          0%, 100% { opacity: 0.3; }
-          50% { opacity: 1; }
-        }
-        @keyframes ripple {
-          0% { r: 15; opacity: 0.6; }
-          100% { r: 45; opacity: 0; }
-        }
-      `}</style>
-    </svg>
   );
 }
