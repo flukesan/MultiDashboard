@@ -1,14 +1,45 @@
-import { Plus, Settings, Moon, Sun, Save, LayoutDashboard, Maximize2, Minimize2 } from 'lucide-react';
+import {
+  Plus,
+  Settings,
+  Moon,
+  Sun,
+  Save,
+  LayoutDashboard,
+  Maximize2,
+  Minimize2,
+  Layers,
+  ChevronLeft,
+  ChevronRight,
+  Play,
+  Pause,
+  Clock,
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useDashboard } from '@/hooks';
 import { useThemeStore } from '@/store/theme-store';
 import { WidgetType } from '@/types';
 import { useState, useEffect } from 'react';
+import { DashboardManager } from '@/components/common/DashboardManager';
+import { AutoRotateSettings } from '@/components/common/AutoRotateSettings';
 
 export function Toolbar() {
-  const { editMode, setEditMode, createWidget, saveDashboard, currentDashboard } = useDashboard();
+  const {
+    editMode,
+    setEditMode,
+    createWidget,
+    saveDashboards,
+    currentDashboard,
+    dashboards,
+    previousDashboard,
+    nextDashboard,
+    autoRotate,
+    startAutoRotate,
+    stopAutoRotate,
+  } = useDashboard();
   const { mode, toggleMode } = useThemeStore();
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [dashboardManagerOpen, setDashboardManagerOpen] = useState(false);
+  const [autoRotateSettingsOpen, setAutoRotateSettingsOpen] = useState(false);
 
   console.log('Toolbar render - editMode:', editMode);
 
@@ -37,7 +68,7 @@ export function Toolbar() {
   const handleSave = () => {
     console.log('Save button clicked');
     try {
-      saveDashboard();
+      saveDashboards();
       console.log('Save completed');
     } catch (error) {
       console.error('Error saving dashboard:', error);
@@ -63,70 +94,165 @@ export function Toolbar() {
     }
   };
 
+  const handleAutoRotateToggle = () => {
+    if (autoRotate.enabled) {
+      stopAutoRotate();
+    } else {
+      startAutoRotate();
+    }
+  };
+
   return (
-    <div className="sticky top-0 z-10 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="flex h-16 items-center justify-between px-6">
-        <div className="flex items-center space-x-4">
-          <div className="flex items-center space-x-2">
-            <LayoutDashboard className="h-6 w-6 text-primary" />
-            <h1 className="text-xl font-bold">
-              {currentDashboard?.name || 'MultiDashboard'}
-            </h1>
+    <>
+      <div className="sticky top-0 z-10 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <div className="flex h-16 items-center justify-between px-6">
+          {/* Left side - Dashboard info and navigation */}
+          <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-2">
+              <LayoutDashboard className="h-6 w-6 text-primary" />
+              <h1 className="text-xl font-bold">
+                {currentDashboard?.name || 'MultiDashboard'}
+              </h1>
+            </div>
+
+            {currentDashboard?.description && (
+              <p className="text-sm text-muted-foreground">{currentDashboard.description}</p>
+            )}
+
+            {/* Dashboard Navigation - show when multiple dashboards */}
+            {dashboards.length > 1 && (
+              <div className="flex items-center space-x-1 ml-4 border-l pl-4">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={previousDashboard}
+                  title="Previous Dashboard"
+                >
+                  <ChevronLeft className="h-5 w-5" />
+                </Button>
+                <span className="text-xs text-muted-foreground px-2">
+                  {dashboards.findIndex((d) => d.id === currentDashboard?.id) + 1} / {dashboards.length}
+                </span>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={nextDashboard}
+                  title="Next Dashboard"
+                >
+                  <ChevronRight className="h-5 w-5" />
+                </Button>
+              </div>
+            )}
           </div>
-          {currentDashboard?.description && (
-            <p className="text-sm text-muted-foreground">{currentDashboard.description}</p>
-          )}
-        </div>
 
-        <div className="flex items-center space-x-2">
-          {editMode && (
-            <>
-              <Button variant="outline" size="sm" onClick={() => handleAddWidget('number')}>
-                <Plus className="mr-2 h-4 w-4" />
-                Number
-              </Button>
-              <Button variant="outline" size="sm" onClick={() => handleAddWidget('chart')}>
-                <Plus className="mr-2 h-4 w-4" />
-                Chart
-              </Button>
-              <Button variant="outline" size="sm" onClick={() => handleAddWidget('table')}>
-                <Plus className="mr-2 h-4 w-4" />
-                Table
-              </Button>
-              <Button variant="outline" size="sm" onClick={() => handleAddWidget('map')}>
-                <Plus className="mr-2 h-4 w-4" />
-                Map
-              </Button>
-              <Button variant="outline" size="sm" onClick={handleSave}>
-                <Save className="mr-2 h-4 w-4" />
-                Save
-              </Button>
-            </>
-          )}
+          {/* Right side - Controls */}
+          <div className="flex items-center space-x-2">
+            {/* Widget add buttons - only in edit mode */}
+            {editMode && (
+              <>
+                <Button variant="outline" size="sm" onClick={() => handleAddWidget('number')}>
+                  <Plus className="mr-2 h-4 w-4" />
+                  Number
+                </Button>
+                <Button variant="outline" size="sm" onClick={() => handleAddWidget('chart')}>
+                  <Plus className="mr-2 h-4 w-4" />
+                  Chart
+                </Button>
+                <Button variant="outline" size="sm" onClick={() => handleAddWidget('table')}>
+                  <Plus className="mr-2 h-4 w-4" />
+                  Table
+                </Button>
+                <Button variant="outline" size="sm" onClick={() => handleAddWidget('map')}>
+                  <Plus className="mr-2 h-4 w-4" />
+                  Map
+                </Button>
+                <Button variant="outline" size="sm" onClick={handleSave}>
+                  <Save className="mr-2 h-4 w-4" />
+                  Save
+                </Button>
 
-          <Button
-            variant={editMode ? 'default' : 'outline'}
-            size="sm"
-            onClick={handleEditToggle}
-          >
-            <Settings className="mr-2 h-4 w-4" />
-            {editMode ? 'Done' : 'Edit'}
-          </Button>
+                <div className="w-px h-6 bg-border mx-2" />
 
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={handleFullscreenToggle}
-            title={isFullscreen ? 'Exit Fullscreen' : 'Enter Fullscreen'}
-          >
-            {isFullscreen ? <Minimize2 className="h-5 w-5" /> : <Maximize2 className="h-5 w-5" />}
-          </Button>
+                {/* Dashboard Manager button - only in edit mode */}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setDashboardManagerOpen(true)}
+                >
+                  <Layers className="mr-2 h-4 w-4" />
+                  Dashboards
+                </Button>
+              </>
+            )}
 
-          <Button variant="ghost" size="icon" onClick={toggleMode}>
-            {mode === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
-          </Button>
+            {/* Auto-rotate controls - show when not in edit mode and have multiple dashboards */}
+            {!editMode && dashboards.length > 1 && (
+              <>
+                <Button
+                  variant={autoRotate.enabled ? 'default' : 'ghost'}
+                  size="icon"
+                  onClick={handleAutoRotateToggle}
+                  title={autoRotate.enabled ? 'Stop Auto-Rotate' : 'Start Auto-Rotate'}
+                >
+                  {autoRotate.enabled ? (
+                    <Pause className="h-5 w-5" />
+                  ) : (
+                    <Play className="h-5 w-5" />
+                  )}
+                </Button>
+
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setAutoRotateSettingsOpen(true)}
+                  title="Auto-Rotate Settings"
+                >
+                  <Clock className="h-5 w-5" />
+                </Button>
+              </>
+            )}
+
+            <div className="w-px h-6 bg-border mx-2" />
+
+            {/* Edit mode toggle */}
+            <Button
+              variant={editMode ? 'default' : 'outline'}
+              size="sm"
+              onClick={handleEditToggle}
+            >
+              <Settings className="mr-2 h-4 w-4" />
+              {editMode ? 'Done' : 'Edit'}
+            </Button>
+
+            {/* Fullscreen toggle */}
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handleFullscreenToggle}
+              title={isFullscreen ? 'Exit Fullscreen' : 'Enter Fullscreen'}
+            >
+              {isFullscreen ? <Minimize2 className="h-5 w-5" /> : <Maximize2 className="h-5 w-5" />}
+            </Button>
+
+            {/* Theme toggle */}
+            <Button variant="ghost" size="icon" onClick={toggleMode}>
+              {mode === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+            </Button>
+          </div>
         </div>
       </div>
-    </div>
+
+      {/* Dashboard Manager Modal */}
+      <DashboardManager
+        open={dashboardManagerOpen}
+        onOpenChange={setDashboardManagerOpen}
+      />
+
+      {/* Auto-Rotate Settings Modal */}
+      <AutoRotateSettings
+        open={autoRotateSettingsOpen}
+        onOpenChange={setAutoRotateSettingsOpen}
+      />
+    </>
   );
 }

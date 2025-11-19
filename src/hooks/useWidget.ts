@@ -7,12 +7,13 @@ import { widgetRegistry } from '@/lib/widget-registry';
  * Hook for working with widgets
  */
 export function useWidget(widgetId: string) {
-  const { currentDashboard, updateWidget, removeWidget, updateWidgetLayout, setSelectedWidget } =
+  const { getCurrentDashboard, updateWidget, removeWidget, updateWidgetLayout, setSelectedWidget } =
     useDashboardStore();
 
   const widget = useMemo(() => {
-    return currentDashboard?.widgets.find((w) => w.id === widgetId);
-  }, [currentDashboard, widgetId]);
+    const currentDashboard = getCurrentDashboard();
+    return currentDashboard?.widgets.find((w: Widget) => w.id === widgetId);
+  }, [getCurrentDashboard, widgetId]);
 
   const widgetDefinition = useMemo(() => {
     return widget ? widgetRegistry.get(widget.type) : undefined;
