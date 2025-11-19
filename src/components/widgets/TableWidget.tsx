@@ -77,7 +77,7 @@ export function TableWidget({
       <div className="flex h-full flex-col">
         <div className="flex-1 overflow-auto">
           <table className="w-full border-collapse text-sm">
-            <thead className="sticky top-0 bg-muted/50 backdrop-blur">
+            <thead className="sticky top-0 z-10 bg-muted backdrop-blur">
               {table.getHeaderGroups().map((headerGroup) => (
                 <tr key={headerGroup.id}>
                   {headerGroup.headers.map((header) => (

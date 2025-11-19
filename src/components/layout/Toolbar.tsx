@@ -65,6 +65,10 @@ export function Toolbar() {
                 <Plus className="mr-2 h-4 w-4" />
                 Table
               </Button>
+              <Button variant="outline" size="sm" onClick={() => handleAddWidget('map')}>
+                <Plus className="mr-2 h-4 w-4" />
+                Map
+              </Button>
               <Button variant="outline" size="sm" onClick={handleSave}>
                 <Save className="mr-2 h-4 w-4" />
                 Save
