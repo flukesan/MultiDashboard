@@ -1,20 +1,15 @@
-import { useEffect } from 'react';
 import { DashboardGrid } from '@/components/layout/DashboardGrid';
 import { Toolbar } from '@/components/layout/Toolbar';
 import { EmptyState } from '@/components/common/EmptyState';
 import { LayoutDashboard } from 'lucide-react';
-import { useDashboard } from '@/hooks';
+import { useDashboard, useAutoRotate } from '@/hooks';
 import { Button } from '@/components/ui/button';
 
 export function Dashboard() {
-  const { currentDashboard, editMode, createDashboard, createWidget } = useDashboard();
+  const { currentDashboard, editMode, createWidget } = useDashboard();
 
-  // Initialize with a default dashboard if none exists
-  useEffect(() => {
-    if (!currentDashboard) {
-      createDashboard('My Dashboard', 'Welcome to MultiDashboard');
-    }
-  }, [currentDashboard, createDashboard]);
+  // Enable auto-rotate functionality
+  useAutoRotate();
 
   if (!currentDashboard) {
     return null;
@@ -26,7 +21,7 @@ export function Dashboard() {
     <div className="flex h-screen flex-col">
       <Toolbar />
 
-      <div className="flex-1 overflow-auto">
+      <div className="flex-1 overflow-auto" data-dashboard-container>
         <div className="container mx-auto p-6">
           {hasWidgets ? (
             <DashboardGrid widgets={currentDashboard.widgets} editMode={editMode} />

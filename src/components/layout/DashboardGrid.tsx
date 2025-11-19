@@ -11,7 +11,8 @@ interface DashboardGridProps {
 }
 
 export function DashboardGrid({ widgets, editMode }: DashboardGridProps) {
-  const { currentDashboard, updateWidgetLayout } = useDashboardStore();
+  const { getCurrentDashboard, updateWidgetLayout } = useDashboardStore();
+  const currentDashboard = getCurrentDashboard();
 
   const layout: Layout[] = useMemo(() => {
     return widgets.map((widget) => ({

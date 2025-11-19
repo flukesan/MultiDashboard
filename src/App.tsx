@@ -15,14 +15,29 @@ const queryClient = new QueryClient({
 });
 
 function App() {
-  const { currentDashboard, setDashboard } = useDashboardStore();
+  const { dashboards, loadDashboards, createDashboard, updateDashboard } = useDashboardStore();
 
-  // Load demo dashboard on first load
+  // Load dashboards on first mount
   useEffect(() => {
-    if (!currentDashboard) {
-      setDashboard(DEMO_DASHBOARD);
+    loadDashboards();
+  }, [loadDashboards]);
+
+  // Create demo dashboard if no dashboards exist
+  useEffect(() => {
+    if (dashboards.length === 0) {
+      const newDashboard = createDashboard(
+        DEMO_DASHBOARD.name,
+        DEMO_DASHBOARD.description
+      );
+
+      // Add demo widgets to the new dashboard
+      if (DEMO_DASHBOARD.widgets.length > 0) {
+        updateDashboard(newDashboard.id, {
+          widgets: DEMO_DASHBOARD.widgets,
+        });
+      }
     }
-  }, [currentDashboard, setDashboard]);
+  }, [dashboards, createDashboard, updateDashboard]);
 
   return (
     <QueryClientProvider client={queryClient}>

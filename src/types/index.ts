@@ -175,6 +175,18 @@ export interface Dashboard {
   updatedAt?: Date;
 }
 
+export interface AutoRotateConfig {
+  enabled: boolean;
+  interval: number; // in seconds
+  pauseOnHover?: boolean;
+}
+
+export interface DashboardCollection {
+  dashboards: Dashboard[];
+  currentDashboardId: string | null;
+  autoRotate: AutoRotateConfig;
+}
+
 // ============== Theme Types ==============
 
 export interface ThemeColors {
@@ -214,10 +226,12 @@ export interface WidgetState {
 }
 
 export interface DashboardState {
-  currentDashboard: Dashboard | null;
+  dashboards: Dashboard[];
+  currentDashboardId: string | null;
   widgets: Map<string, WidgetState>;
   editMode: boolean;
   selectedWidgetId: string | null;
+  autoRotate: AutoRotateConfig;
 }
 
 // ============== API Response Types ==============

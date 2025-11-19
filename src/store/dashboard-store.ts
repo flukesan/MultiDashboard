@@ -1,124 +1,239 @@
 import { create } from 'zustand';
-import { Dashboard, Widget, LayoutConfig } from '@/types';
+import { Dashboard, Widget, LayoutConfig, AutoRotateConfig } from '@/types';
 import { storage } from '@/lib/utils';
 
 interface DashboardStore {
   // State
-  currentDashboard: Dashboard | null;
+  dashboards: Dashboard[];
+  currentDashboardId: string | null;
   editMode: boolean;
   selectedWidgetId: string | null;
+  autoRotate: AutoRotateConfig;
 
-  // Actions
-  setDashboard: (dashboard: Dashboard) => void;
-  updateDashboard: (updates: Partial<Dashboard>) => void;
+  // Dashboard Actions
+  createDashboard: (name: string, description?: string) => Dashboard;
+  deleteDashboard: (dashboardId: string) => void;
+  switchDashboard: (dashboardId: string) => void;
+  nextDashboard: () => void;
+  previousDashboard: () => void;
+  updateDashboard: (dashboardId: string, updates: Partial<Dashboard>) => void;
+
+  // Widget Actions
   addWidget: (widget: Widget) => void;
   removeWidget: (widgetId: string) => void;
   updateWidget: (widgetId: string, updates: Partial<Widget>) => void;
   updateWidgetLayout: (widgetId: string, layout: LayoutConfig) => void;
+
+  // UI Actions
   setEditMode: (editMode: boolean) => void;
   setSelectedWidget: (widgetId: string | null) => void;
-  saveDashboard: () => void;
-  loadDashboard: (dashboardId: string) => void;
-  resetDashboard: () => void;
+
+  // Auto-rotate Actions
+  setAutoRotate: (config: Partial<AutoRotateConfig>) => void;
+  startAutoRotate: () => void;
+  stopAutoRotate: () => void;
+
+  // Storage Actions
+  saveDashboards: () => void;
+  loadDashboards: () => void;
+
+  // Helpers
+  getCurrentDashboard: () => Dashboard | null;
 }
 
-const STORAGE_KEY = 'multi-dashboard';
+const STORAGE_KEY = 'multi-dashboard-collection';
 
 export const useDashboardStore = create<DashboardStore>((set, get) => ({
   // Initial state
-  currentDashboard: null,
+  dashboards: [],
+  currentDashboardId: null,
   editMode: false,
   selectedWidgetId: null,
+  autoRotate: {
+    enabled: false,
+    interval: 10, // 10 seconds default
+    pauseOnHover: true,
+  },
 
-  // Set entire dashboard
-  setDashboard: (dashboard) => {
-    set({ currentDashboard: dashboard });
+  // Create new dashboard
+  createDashboard: (name, description) => {
+    const newDashboard: Dashboard = {
+      id: `dashboard-${Date.now()}`,
+      name,
+      description,
+      widgets: [],
+      layout: {
+        cols: 12,
+        rowHeight: 100,
+        margin: [16, 16],
+        containerPadding: [16, 16],
+        compactType: 'vertical',
+      },
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    set((state) => ({
+      dashboards: [...state.dashboards, newDashboard],
+      currentDashboardId: newDashboard.id,
+    }));
+
+    get().saveDashboards();
+    return newDashboard;
+  },
+
+  // Delete dashboard
+  deleteDashboard: (dashboardId) => {
+    const state = get();
+    const newDashboards = state.dashboards.filter((d) => d.id !== dashboardId);
+
+    let newCurrentId = state.currentDashboardId;
+    if (state.currentDashboardId === dashboardId) {
+      // If deleting current dashboard, switch to another one
+      newCurrentId = newDashboards.length > 0 ? newDashboards[0].id : null;
+    }
+
+    set({
+      dashboards: newDashboards,
+      currentDashboardId: newCurrentId,
+    });
+
+    get().saveDashboards();
+  },
+
+  // Switch to a specific dashboard
+  switchDashboard: (dashboardId) => {
+    const dashboard = get().dashboards.find((d) => d.id === dashboardId);
+    if (dashboard) {
+      set({ currentDashboardId: dashboardId });
+    }
+  },
+
+  // Switch to next dashboard
+  nextDashboard: () => {
+    const state = get();
+    if (state.dashboards.length === 0) return;
+
+    const currentIndex = state.dashboards.findIndex(
+      (d) => d.id === state.currentDashboardId
+    );
+    const nextIndex = (currentIndex + 1) % state.dashboards.length;
+
+    set({ currentDashboardId: state.dashboards[nextIndex].id });
+  },
+
+  // Switch to previous dashboard
+  previousDashboard: () => {
+    const state = get();
+    if (state.dashboards.length === 0) return;
+
+    const currentIndex = state.dashboards.findIndex(
+      (d) => d.id === state.currentDashboardId
+    );
+    const prevIndex = currentIndex <= 0
+      ? state.dashboards.length - 1
+      : currentIndex - 1;
+
+    set({ currentDashboardId: state.dashboards[prevIndex].id });
   },
 
   // Update dashboard properties
-  updateDashboard: (updates) => {
-    const current = get().currentDashboard;
-    if (!current) return;
+  updateDashboard: (dashboardId, updates) => {
+    set((state) => ({
+      dashboards: state.dashboards.map((d) =>
+        d.id === dashboardId
+          ? { ...d, ...updates, updatedAt: new Date() }
+          : d
+      ),
+    }));
 
-    set({
-      currentDashboard: {
-        ...current,
-        ...updates,
-        updatedAt: new Date(),
-      },
-    });
+    get().saveDashboards();
   },
 
-  // Add new widget
+  // Add widget to current dashboard
   addWidget: (widget) => {
-    console.log('addWidget called with:', widget);
-    const current = get().currentDashboard;
-    if (!current) {
-      console.error('No current dashboard!');
-      return;
-    }
+    const state = get();
+    if (!state.currentDashboardId) return;
 
-    const newWidgets = [...current.widgets, widget];
-    console.log('New widgets array:', newWidgets);
+    set((s) => ({
+      dashboards: s.dashboards.map((d) =>
+        d.id === s.currentDashboardId
+          ? { ...d, widgets: [...d.widgets, widget], updatedAt: new Date() }
+          : d
+      ),
+    }));
 
-    set({
-      currentDashboard: {
-        ...current,
-        widgets: newWidgets,
-        updatedAt: new Date(),
-      },
-    });
-    console.log('Widget added successfully');
+    get().saveDashboards();
   },
 
-  // Remove widget
+  // Remove widget from current dashboard
   removeWidget: (widgetId) => {
-    const current = get().currentDashboard;
-    if (!current) return;
+    const state = get();
+    if (!state.currentDashboardId) return;
 
-    set({
-      currentDashboard: {
-        ...current,
-        widgets: current.widgets.filter((w) => w.id !== widgetId),
-        updatedAt: new Date(),
-      },
-      selectedWidgetId: get().selectedWidgetId === widgetId ? null : get().selectedWidgetId,
-    });
+    set((s) => ({
+      dashboards: s.dashboards.map((d) =>
+        d.id === s.currentDashboardId
+          ? {
+              ...d,
+              widgets: d.widgets.filter((w) => w.id !== widgetId),
+              updatedAt: new Date(),
+            }
+          : d
+      ),
+      selectedWidgetId: s.selectedWidgetId === widgetId ? null : s.selectedWidgetId,
+    }));
+
+    get().saveDashboards();
   },
 
   // Update widget
   updateWidget: (widgetId, updates) => {
-    const current = get().currentDashboard;
-    if (!current) return;
+    const state = get();
+    if (!state.currentDashboardId) return;
 
-    set({
-      currentDashboard: {
-        ...current,
-        widgets: current.widgets.map((w) => (w.id === widgetId ? { ...w, ...updates } : w)),
-        updatedAt: new Date(),
-      },
-    });
+    set((s) => ({
+      dashboards: s.dashboards.map((d) =>
+        d.id === s.currentDashboardId
+          ? {
+              ...d,
+              widgets: d.widgets.map((w) =>
+                w.id === widgetId ? { ...w, ...updates } : w
+              ),
+              updatedAt: new Date(),
+            }
+          : d
+      ),
+    }));
+
+    get().saveDashboards();
   },
 
   // Update widget layout
   updateWidgetLayout: (widgetId, layout) => {
-    const current = get().currentDashboard;
-    if (!current) return;
+    const state = get();
+    if (!state.currentDashboardId) return;
 
-    set({
-      currentDashboard: {
-        ...current,
-        widgets: current.widgets.map((w) => (w.id === widgetId ? { ...w, layout } : w)),
-        updatedAt: new Date(),
-      },
-    });
+    set((s) => ({
+      dashboards: s.dashboards.map((d) =>
+        d.id === s.currentDashboardId
+          ? {
+              ...d,
+              widgets: d.widgets.map((w) =>
+                w.id === widgetId ? { ...w, layout } : w
+              ),
+              updatedAt: new Date(),
+            }
+          : d
+      ),
+    }));
+
+    get().saveDashboards();
   },
 
   // Toggle edit mode
   setEditMode: (editMode) => {
-    console.log('setEditMode called:', editMode);
     set({ editMode, selectedWidgetId: editMode ? get().selectedWidgetId : null });
-    console.log('Edit mode set to:', editMode);
   },
 
   // Select widget
@@ -126,37 +241,61 @@ export const useDashboardStore = create<DashboardStore>((set, get) => ({
     set({ selectedWidgetId: widgetId });
   },
 
-  // Save dashboard to localStorage
-  saveDashboard: () => {
-    console.log('saveDashboard called');
-    const dashboard = get().currentDashboard;
-    if (!dashboard) {
-      console.error('No dashboard to save!');
-      return;
-    }
-
-    const saved = storage.get<Record<string, Dashboard>>(STORAGE_KEY, {});
-    saved[dashboard.id] = dashboard;
-    storage.set(STORAGE_KEY, saved);
-    console.log('Dashboard saved successfully:', dashboard.id);
+  // Set auto-rotate configuration
+  setAutoRotate: (config) => {
+    set((state) => ({
+      autoRotate: { ...state.autoRotate, ...config },
+    }));
+    get().saveDashboards();
   },
 
-  // Load dashboard from localStorage
-  loadDashboard: (dashboardId) => {
-    const saved = storage.get<Record<string, Dashboard>>(STORAGE_KEY, {});
-    const dashboard = saved[dashboardId];
-
-    if (dashboard) {
-      set({ currentDashboard: dashboard });
-    }
+  // Start auto-rotate (implementation in component with setInterval)
+  startAutoRotate: () => {
+    set((state) => ({
+      autoRotate: { ...state.autoRotate, enabled: true },
+    }));
   },
 
-  // Reset dashboard
-  resetDashboard: () => {
-    set({
-      currentDashboard: null,
-      editMode: false,
-      selectedWidgetId: null,
+  // Stop auto-rotate
+  stopAutoRotate: () => {
+    set((state) => ({
+      autoRotate: { ...state.autoRotate, enabled: false },
+    }));
+  },
+
+  // Save all dashboards to localStorage
+  saveDashboards: () => {
+    const state = get();
+    storage.set(STORAGE_KEY, {
+      dashboards: state.dashboards,
+      currentDashboardId: state.currentDashboardId,
+      autoRotate: state.autoRotate,
     });
+  },
+
+  // Load dashboards from localStorage
+  loadDashboards: () => {
+    const saved = storage.get<{
+      dashboards: Dashboard[];
+      currentDashboardId: string | null;
+      autoRotate?: AutoRotateConfig;
+    }>(STORAGE_KEY, {
+      dashboards: [],
+      currentDashboardId: null,
+    });
+
+    if (saved) {
+      set({
+        dashboards: saved.dashboards || [],
+        currentDashboardId: saved.currentDashboardId,
+        autoRotate: saved.autoRotate || get().autoRotate,
+      });
+    }
+  },
+
+  // Get current dashboard
+  getCurrentDashboard: () => {
+    const state = get();
+    return state.dashboards.find((d) => d.id === state.currentDashboardId) || null;
   },
 }));
