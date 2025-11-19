@@ -4,7 +4,7 @@
  */
 
 import { widgetRegistry } from './widget-registry';
-import { ChartWidget, NumberWidget, TableWidget } from '@/components/widgets';
+import { ChartWidget, NumberWidget, TableWidget, ScadaWidget } from '@/components/widgets';
 
 // Register Number Widget
 widgetRegistry.register({
@@ -132,6 +132,28 @@ widgetRegistry.register({
     minH: 4,
     maxW: 12,
     maxH: 10,
+  },
+});
+
+// Register SCADA Widget
+widgetRegistry.register({
+  type: 'scada',
+  name: 'SCADA Widget',
+  description: 'Industrial equipment visualization with alarms',
+  icon: 'Cpu',
+  component: ScadaWidget,
+  defaultConfig: {
+    title: 'Equipment',
+    showHeader: true,
+    showBorder: true,
+  },
+  defaultLayout: {
+    w: 4,
+    h: 5,
+    minW: 3,
+    minH: 4,
+    maxW: 6,
+    maxH: 8,
   },
 });
 
