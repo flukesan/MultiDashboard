@@ -13,6 +13,7 @@ import {
   Play,
   Pause,
   Clock,
+  Home,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useDashboard } from '@/hooks';
@@ -25,7 +26,11 @@ import { DashboardManager } from '@/components/common/DashboardManager';
 import { AutoRotateSettings } from '@/components/common/AutoRotateSettings';
 import { WidgetTypeSelector } from '@/components/common/WidgetTypeSelector';
 
-export function Toolbar() {
+interface ToolbarProps {
+  onNavigateHome?: () => void;
+}
+
+export function Toolbar({ onNavigateHome }: ToolbarProps) {
   const {
     editMode,
     setEditMode,
@@ -113,6 +118,18 @@ export function Toolbar() {
         <div className="flex h-16 items-center justify-between px-6">
           {/* Left side - Dashboard info and navigation */}
           <div className="flex items-center space-x-4">
+            {onNavigateHome && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={onNavigateHome}
+                className="gap-2"
+              >
+                <Home className="h-4 w-4" />
+                Home
+              </Button>
+            )}
+
             <div className="flex items-center space-x-2">
               <LayoutDashboard className="h-6 w-6 text-primary" />
               <h1 className="text-xl font-bold">

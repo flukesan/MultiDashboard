@@ -13,7 +13,8 @@ interface DashboardStore {
   // Dashboard Actions
   createDashboard: (name: string, description?: string) => Dashboard;
   deleteDashboard: (dashboardId: string) => void;
-  switchDashboard: (dashboardId: string) => void;
+  switchDashboard: (dashboardId: string | null) => void;
+  navigateToHome: () => void;
   nextDashboard: () => void;
   previousDashboard: () => void;
   updateDashboard: (dashboardId: string, updates: Partial<Dashboard>) => void;
@@ -103,10 +104,19 @@ export const useDashboardStore = create<DashboardStore>((set, get) => ({
 
   // Switch to a specific dashboard
   switchDashboard: (dashboardId) => {
+    if (dashboardId === null) {
+      set({ currentDashboardId: null });
+      return;
+    }
     const dashboard = get().dashboards.find((d) => d.id === dashboardId);
     if (dashboard) {
       set({ currentDashboardId: dashboardId });
     }
+  },
+
+  // Navigate to home page
+  navigateToHome: () => {
+    set({ currentDashboardId: null });
   },
 
   // Switch to next dashboard

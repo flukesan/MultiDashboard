@@ -386,3 +386,25 @@ export interface NumberData {
   trend?: 'up' | 'down' | 'neutral';
   trendPercentage?: number;
 }
+
+// ============== HomePage Types ==============
+
+export interface NavigationButton {
+  id: string;
+  label: string;
+  dashboardId: string;
+  position: {
+    x: number; // percentage from left
+    y: number; // percentage from top
+  };
+  style?: {
+    backgroundColor?: string;
+    textColor?: string;
+    size?: 'sm' | 'md' | 'lg';
+  };
+}
+
+export interface HomePageConfig {
+  backgroundImage?: string; // URL or base64
+  buttons: NavigationButton[];
+}
