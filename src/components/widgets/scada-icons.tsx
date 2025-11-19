@@ -8,6 +8,99 @@ export interface IconProps {
   rotation?: number;
 }
 
+// ===== VESSELS & TANKS =====
+
+export function TankIcon({ value, color, blink, rotation = 0 }: IconProps & { value: number }) {
+  const liquidHeight = (value / 100) * 100;
+
+  return (
+    <svg viewBox="0 0 200 200" className="w-full" style={{ transform: `rotate(${rotation}deg)` }}>
+      <rect
+        x="50" y="40" width="100" height="120"
+        fill="none" stroke={color} strokeWidth="3" rx="5"
+        opacity={blink ? 0.7 : 1}
+        style={{ transition: 'opacity 0.3s ease' }}
+      />
+      <rect
+        x="50" y={160 - liquidHeight} width="100" height={liquidHeight}
+        fill={color} opacity={blink ? 0.5 : 0.3}
+        style={{ transition: 'height 1s ease, y 1s ease, opacity 0.3s ease' }}
+      />
+      {[25, 50, 75].map((level) => (
+        <line key={level} x1="50" x2="60" y1={160 - level} y2={160 - level} stroke={color} strokeWidth="1" opacity="0.5" />
+      ))}
+      <rect x="90" y="160" width="20" height="30" fill={color} opacity="0.5" />
+    </svg>
+  );
+}
+
+// ===== ROTATING EQUIPMENT =====
+
+export function PumpIcon({ active, color, blink, rotation = 0 }: IconProps & { active: boolean }) {
+  return (
+    <svg viewBox="0 0 200 200" className="w-full" style={{ transform: `rotate(${rotation}deg)` }}>
+      <circle cx="100" cy="100" r="40" fill="none" stroke={color} strokeWidth="3" opacity={blink ? 0.7 : 1} />
+      <g transform="translate(100, 100)" style={{ animation: active ? 'spin 2s linear infinite' : 'none' }}>
+        {[0, 120, 240].map((angle) => (
+          <line key={angle} x1="0" y1="0" x2="0" y2="-30" stroke={color} strokeWidth="3" strokeLinecap="round" transform={`rotate(${angle})`} />
+        ))}
+      </g>
+      <rect x="20" y="90" width="40" height="20" fill={color} opacity="0.5" />
+      <rect x="140" y="90" width="40" height="20" fill={color} opacity="0.5" />
+      <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
+    </svg>
+  );
+}
+
+export function MotorIcon({ active, color, blink, rotation = 0 }: IconProps & { active: boolean }) {
+  return (
+    <svg viewBox="0 0 200 200" className="w-full" style={{ transform: `rotate(${rotation}deg)` }}>
+      <rect x="60" y="70" width="80" height="60" fill="none" stroke={color} strokeWidth="3" rx="5" opacity={blink ? 0.7 : 1} />
+      {[75, 85, 95, 105, 115, 125].map((y) => (
+        <line key={y} x1="60" x2="140" y1={y} y2={y} stroke={color} strokeWidth="1" opacity="0.3" />
+      ))}
+      <rect x="140" y="95" width="30" height="10" fill={color} opacity="0.7" />
+      <g transform="translate(155, 100)" style={{ animation: active ? 'spin 1s linear infinite' : 'none' }}>
+        <circle cx="0" cy="0" r="8" fill="none" stroke={color} strokeWidth="2" />
+        <line x1="0" y1="0" x2="0" y2="-8" stroke={color} strokeWidth="2" />
+      </g>
+      <rect x="85" y="50" width="30" height="20" fill={color} opacity="0.3" />
+      <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
+    </svg>
+  );
+}
+
+export function SensorIcon({ value, color, blink, rotation = 0 }: IconProps & { value: number }) {
+  const intensity = value / 100;
+
+  return (
+    <svg viewBox="0 0 200 200" className="w-full" style={{ transform: `rotate(${rotation}deg)` }}>
+      <rect x="80" y="60" width="40" height="80" fill="none" stroke={color} strokeWidth="3" rx="20" opacity={blink ? 0.7 : 1} />
+      <circle cx="100" cy="100" r={12} fill={color} opacity={0.3 + intensity * 0.7} style={{ animation: value > 80 ? 'pulse 1s ease-in-out infinite' : 'none' }} />
+      {[1, 2, 3].map((i) => (
+        <circle key={i} cx="100" cy="100" r={15 + i * 10} fill="none" stroke={color} strokeWidth="2" opacity={Math.max(0, intensity - i * 0.2)} style={{ animation: value > 50 ? `ripple 2s ease-out infinite ${i * 0.3}s` : 'none' }} />
+      ))}
+      <line x1="100" y1="140" x2="100" y2="170" stroke={color} strokeWidth="2" />
+      <style>{`
+        @keyframes pulse { 0%, 100% { opacity: 0.3; } 50% { opacity: 1; } }
+        @keyframes ripple { 0% { r: 15; opacity: 0.6; } 100% { r: 45; opacity: 0; } }
+      `}</style>
+    </svg>
+  );
+}
+
+export function ValveIcon({ active, color, blink, rotation = 0 }: IconProps & { active: boolean }) {
+  return (
+    <svg viewBox="0 0 200 200" className="w-full" style={{ transform: `rotate(${rotation}deg)` }}>
+      <rect x="20" y="90" width="160" height="20" fill={color} opacity="0.5" />
+      <rect x="80" y="70" width="40" height="60" fill="none" stroke={color} strokeWidth="3" opacity={blink ? 0.7 : 1} />
+      <ellipse cx="100" cy="100" rx={active ? '2' : '18'} ry="18" fill={color} opacity="0.7" style={{ transition: 'rx 0.5s ease' }} />
+      <line x1="100" y1="70" x2="100" y2={active ? '40' : '50'} stroke={color} strokeWidth="3" strokeLinecap="round" style={{ transition: 'y2 0.5s ease' }} />
+      <circle cx="100" cy={active ? '40' : '50'} r="5" fill={color} />
+    </svg>
+  );
+}
+
 // ===== PIPES & FITTINGS =====
 
 export function PipeHorizontalIcon({ color, blink, rotation = 0 }: IconProps) {
