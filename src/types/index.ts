@@ -8,7 +8,13 @@ export type WidgetType = 'chart' | 'number' | 'map' | 'table' | 'text' | 'custom
 
 export type ChartType = 'line' | 'bar' | 'pie' | 'area' | 'scatter' | 'radar';
 
-export type ScadaEquipmentType = 'tank' | 'pump' | 'valve' | 'motor' | 'sensor';
+export type ScadaEquipmentType =
+  | 'tank' | 'pump' | 'valve' | 'motor' | 'sensor'
+  | 'pipe-horizontal' | 'pipe-vertical' | 'pipe-elbow' | 'pipe-t-junction' | 'pipe-cross'
+  | 'valve-gate' | 'valve-ball' | 'valve-check' | 'valve-butterfly'
+  | 'button' | 'switch' | 'indicator' | 'led'
+  | 'flow-meter' | 'pressure-gauge' | 'temperature-sensor'
+  | 'compressor' | 'heat-exchanger' | 'filter';
 
 export interface BaseWidgetConfig {
   title?: string;
@@ -66,6 +72,8 @@ export interface TextWidgetConfig extends BaseWidgetConfig {
 export interface ScadaWidgetConfig extends BaseWidgetConfig {
   scadaConfig?: {
     equipmentType: ScadaEquipmentType;
+    size?: 'small' | 'medium' | 'large' | 'xlarge';
+    rotation?: 0 | 90 | 180 | 270;
     thresholds?: {
       warning?: number;
       alarm?: number;
@@ -76,6 +84,7 @@ export interface ScadaWidgetConfig extends BaseWidgetConfig {
       enabled: boolean;
     };
     unit?: string;
+    label?: string;
   };
 }
 
