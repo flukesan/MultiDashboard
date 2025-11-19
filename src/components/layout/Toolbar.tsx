@@ -17,6 +17,8 @@ import {
 import { Button } from '@/components/ui/button';
 import { useDashboard } from '@/hooks';
 import { useThemeStore } from '@/store/theme-store';
+import { useAlertStore } from '@/store/alert-store';
+import { AlertNotificationCenter } from '@/components/common/AlertNotification';
 import { WidgetType } from '@/types';
 import { useState, useEffect } from 'react';
 import { DashboardManager } from '@/components/common/DashboardManager';
@@ -37,6 +39,7 @@ export function Toolbar() {
     stopAutoRotate,
   } = useDashboard();
   const { mode, toggleMode } = useThemeStore();
+  const { alerts, acknowledgeAlert, removeAlert } = useAlertStore();
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [dashboardManagerOpen, setDashboardManagerOpen] = useState(false);
   const [autoRotateSettingsOpen, setAutoRotateSettingsOpen] = useState(false);
@@ -166,6 +169,10 @@ export function Toolbar() {
                   <Plus className="mr-2 h-4 w-4" />
                   Map
                 </Button>
+                <Button variant="outline" size="sm" onClick={() => handleAddWidget('scada')}>
+                  <Plus className="mr-2 h-4 w-4" />
+                  SCADA
+                </Button>
                 <Button variant="outline" size="sm" onClick={handleSave}>
                   <Save className="mr-2 h-4 w-4" />
                   Save
@@ -233,6 +240,13 @@ export function Toolbar() {
             >
               {isFullscreen ? <Minimize2 className="h-5 w-5" /> : <Maximize2 className="h-5 w-5" />}
             </Button>
+
+            {/* Alert Notification Center */}
+            <AlertNotificationCenter
+              alerts={alerts}
+              onAcknowledge={acknowledgeAlert}
+              onDismiss={removeAlert}
+            />
 
             {/* Theme toggle */}
             <Button variant="ghost" size="icon" onClick={toggleMode}>
