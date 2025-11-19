@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from './button';
@@ -10,10 +11,21 @@ interface DialogProps {
 }
 
 export function Dialog({ open, onOpenChange, children }: DialogProps) {
+  // Prevent body scroll when dialog is open
+  React.useEffect(() => {
+    if (open) {
+      document.body.style.overflow = 'hidden';
+      return () => {
+        document.body.style.overflow = '';
+      };
+    }
+  }, [open]);
+
   if (!open) return null;
 
-  return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center">
+  // Use Portal to render outside the widget tree
+  return createPortal(
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center">
       {/* Backdrop */}
       <div
         className="fixed inset-0 bg-background/80 backdrop-blur-sm"
@@ -21,8 +33,9 @@ export function Dialog({ open, onOpenChange, children }: DialogProps) {
       />
 
       {/* Dialog content */}
-      <div className="relative z-[101]">{children}</div>
-    </div>
+      <div className="relative z-[10000]">{children}</div>
+    </div>,
+    document.body
   );
 }
 
