@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Widget } from '@/types';
-import { ChartWidget, NumberWidget, TableWidget, MapWidget } from '@/components/widgets';
+import { ChartWidget, NumberWidget, TableWidget, MapWidget, ScadaWidget } from '@/components/widgets';
 import { useWidget } from '@/hooks';
 import { WidgetSettingsModal } from '@/components/common/WidgetSettingsModal';
 
@@ -56,6 +56,18 @@ export function WidgetRenderer({ widget, editMode }: WidgetRendererProps) {
 
       case 'map':
         return <MapWidget {...commonProps} config={widget.config as any} />;
+
+      case 'scada':
+        return <ScadaWidget {...commonProps} config={widget.config as any} />;
+
+      case 'gauge':
+      case 'bargauge':
+      case 'heatmap':
+        return (
+          <div className="flex h-full items-center justify-center rounded-lg border border-dashed">
+            <p className="text-muted-foreground">{widget.type} widget (Coming soon)</p>
+          </div>
+        );
 
       default:
         return (
