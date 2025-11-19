@@ -22,21 +22,24 @@ export function Dashboard() {
       <Toolbar />
 
       <div className="flex-1 overflow-auto" data-dashboard-container>
-        <div className="container mx-auto p-6">
+        {/* Remove container and use minimal padding for full-screen display */}
+        <div className={editMode ? 'p-4' : 'p-2'}>
           {hasWidgets ? (
             <DashboardGrid widgets={currentDashboard.widgets} editMode={editMode} />
           ) : (
-            <EmptyState
-              icon={LayoutDashboard}
-              title="No widgets yet"
-              description="Click 'Edit' to start adding widgets to your dashboard"
-              action={
-                <Button onClick={() => createWidget('number')}>
-                  <LayoutDashboard className="mr-2 h-4 w-4" />
-                  Add Your First Widget
-                </Button>
-              }
-            />
+            <div className="flex items-center justify-center min-h-[calc(100vh-4rem)]">
+              <EmptyState
+                icon={LayoutDashboard}
+                title="No widgets yet"
+                description="Click 'Edit' to start adding widgets to your dashboard"
+                action={
+                  <Button onClick={() => createWidget('number')}>
+                    <LayoutDashboard className="mr-2 h-4 w-4" />
+                    Add Your First Widget
+                  </Button>
+                }
+              />
+            </div>
           )}
         </div>
       </div>

@@ -1,9 +1,11 @@
-import { useMemo } from 'react';
-import GridLayout, { Layout } from 'react-grid-layout';
+import { useMemo, useState, useEffect } from 'react';
+import GridLayout, { Layout, WidthProvider } from 'react-grid-layout';
 import 'react-grid-layout/css/styles.css';
 import { Widget } from '@/types';
 import { useDashboardStore } from '@/store/dashboard-store';
 import { WidgetRenderer } from './WidgetRenderer';
+
+const ResponsiveGridLayout = WidthProvider(GridLayout);
 
 interface DashboardGridProps {
   widgets: Widget[];
@@ -13,6 +15,39 @@ interface DashboardGridProps {
 export function DashboardGrid({ widgets, editMode }: DashboardGridProps) {
   const { getCurrentDashboard, updateWidgetLayout } = useDashboardStore();
   const currentDashboard = getCurrentDashboard();
+  const [rowHeight, setRowHeight] = useState(100);
+
+  // Calculate responsive row height based on screen size
+  useEffect(() => {
+    const calculateRowHeight = () => {
+      const screenWidth = window.innerWidth;
+
+      // For large screens (TV), increase row height
+      if (screenWidth >= 3840) {
+        // 4K and above
+        setRowHeight(150);
+      } else if (screenWidth >= 2560) {
+        // 2K
+        setRowHeight(120);
+      } else if (screenWidth >= 1920) {
+        // Full HD
+        setRowHeight(100);
+      } else if (screenWidth >= 1280) {
+        // HD
+        setRowHeight(80);
+      } else {
+        // Smaller screens
+        setRowHeight(60);
+      }
+    };
+
+    calculateRowHeight();
+    window.addEventListener('resize', calculateRowHeight);
+
+    return () => {
+      window.removeEventListener('resize', calculateRowHeight);
+    };
+  }, []);
 
   const layout: Layout[] = useMemo(() => {
     return widgets.map((widget) => ({
@@ -61,15 +96,18 @@ export function DashboardGrid({ widgets, editMode }: DashboardGridProps) {
     containerPadding: [16, 16],
   };
 
+  // Use minimal padding in presentation mode for full-screen display
+  const margin: [number, number] = editMode ? [12, 12] : [8, 8];
+  const containerPadding: [number, number] = editMode ? [12, 12] : [0, 0];
+
   return (
-    <GridLayout
+    <ResponsiveGridLayout
       className="layout"
       layout={layout}
       cols={gridConfig.cols}
-      rowHeight={gridConfig.rowHeight}
-      width={1200}
-      margin={gridConfig.margin as [number, number]}
-      containerPadding={gridConfig.containerPadding as [number, number]}
+      rowHeight={rowHeight}
+      margin={margin}
+      containerPadding={containerPadding}
       compactType={gridConfig.compactType || 'vertical'}
       isDraggable={editMode}
       isResizable={editMode}
@@ -81,6 +119,6 @@ export function DashboardGrid({ widgets, editMode }: DashboardGridProps) {
           <WidgetRenderer widget={widget} editMode={editMode} />
         </div>
       ))}
-    </GridLayout>
+    </ResponsiveGridLayout>
   );
 }
