@@ -4,7 +4,8 @@
 
 // ============== Widget Types ==============
 
-export type WidgetType = 'chart' | 'number' | 'map' | 'table' | 'text' | 'custom' | 'scada' | 'gauge' | 'bargauge' | 'heatmap';
+export type WidgetType = 'chart' | 'number' | 'map' | 'table' | 'text' | 'custom' | 'scada' | 'gauge' | 'bargauge' | 'heatmap'
+  | 'robot-status' | 'robot-position' | 'robot-joint' | 'robot-io' | 'robot-speed' | 'robot-error';
 
 export type ChartType = 'line' | 'bar' | 'pie' | 'area' | 'scatter' | 'radar';
 
@@ -407,4 +408,73 @@ export interface NavigationButton {
 export interface HomePageConfig {
   backgroundImage?: string; // URL or base64
   buttons: NavigationButton[];
+}
+
+// ============== Robot Controller Types ==============
+
+export interface RobotPosition {
+  x: number; // mm
+  y: number; // mm
+  z: number; // mm
+  theta: number; // degrees
+  timestamp?: string;
+}
+
+export interface JointStatus {
+  joint1: number; // degrees
+  joint2: number; // degrees
+  joint3: number; // degrees
+  joint4: number; // degrees
+  joint5: number; // degrees
+  joint6: number; // degrees
+  timestamp?: string;
+}
+
+export interface IOSignal {
+  id: number;
+  name: string;
+  value: boolean;
+  type: 'input' | 'output';
+}
+
+export interface IOStatus {
+  inputs: IOSignal[];
+  outputs: IOSignal[];
+  timestamp?: string;
+}
+
+export interface SpeedData {
+  linear: number; // mm/s
+  angular: number; // deg/s
+  acceleration: number; // mm/s²
+  timestamp?: string;
+}
+
+export interface ErrorAlarm {
+  code: string;
+  level: 'info' | 'warning' | 'error' | 'critical';
+  message: string;
+  timestamp: string;
+  acknowledged?: boolean;
+}
+
+export interface RobotStatus {
+  id: string;
+  name: string;
+  status: 'idle' | 'running' | 'paused' | 'error' | 'emergency' | 'offline';
+  mode: 'auto' | 'manual' | 'teach';
+  position?: RobotPosition;
+  joints?: JointStatus;
+  io?: IOStatus;
+  speed?: SpeedData;
+  errors?: ErrorAlarm[];
+  uptime?: number; // seconds
+  timestamp?: string;
+}
+
+export interface RobotWidgetConfig extends BaseWidgetConfig {
+  robotId?: string;
+  apiEndpoint?: string;
+  refreshInterval?: number;
+  displayMode?: 'compact' | 'detailed';
 }

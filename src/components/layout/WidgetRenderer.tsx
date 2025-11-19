@@ -1,6 +1,18 @@
 import { useState } from 'react';
 import { Widget } from '@/types';
-import { ChartWidget, NumberWidget, TableWidget, MapWidget, ScadaWidget } from '@/components/widgets';
+import {
+  ChartWidget,
+  NumberWidget,
+  TableWidget,
+  MapWidget,
+  ScadaWidget,
+  RobotStatusWidget,
+  RobotPositionWidget,
+  RobotJointWidget,
+  RobotIOWidget,
+  RobotSpeedWidget,
+  RobotErrorWidget,
+} from '@/components/widgets';
 import { useWidget } from '@/hooks';
 import { WidgetSettingsModal } from '@/components/common/WidgetSettingsModal';
 
@@ -59,6 +71,24 @@ export function WidgetRenderer({ widget, editMode }: WidgetRendererProps) {
 
       case 'scada':
         return <ScadaWidget {...commonProps} config={widget.config as any} />;
+
+      case 'robot-status':
+        return <RobotStatusWidget {...commonProps} />;
+
+      case 'robot-position':
+        return <RobotPositionWidget {...commonProps} />;
+
+      case 'robot-joint':
+        return <RobotJointWidget {...commonProps} />;
+
+      case 'robot-io':
+        return <RobotIOWidget {...commonProps} />;
+
+      case 'robot-speed':
+        return <RobotSpeedWidget {...commonProps} />;
+
+      case 'robot-error':
+        return <RobotErrorWidget {...commonProps} />;
 
       case 'gauge':
       case 'bargauge':
