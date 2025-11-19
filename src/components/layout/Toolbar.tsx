@@ -1,14 +1,28 @@
-import { Plus, Settings, Moon, Sun, Save, LayoutDashboard } from 'lucide-react';
+import { Plus, Settings, Moon, Sun, Save, LayoutDashboard, Maximize2, Minimize2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useDashboard } from '@/hooks';
 import { useThemeStore } from '@/store/theme-store';
 import { WidgetType } from '@/types';
+import { useState, useEffect } from 'react';
 
 export function Toolbar() {
   const { editMode, setEditMode, createWidget, saveDashboard, currentDashboard } = useDashboard();
   const { mode, toggleMode } = useThemeStore();
+  const [isFullscreen, setIsFullscreen] = useState(false);
 
   console.log('Toolbar render - editMode:', editMode);
+
+  // Listen for fullscreen changes
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(!!document.fullscreenElement);
+    };
+
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    return () => {
+      document.removeEventListener('fullscreenchange', handleFullscreenChange);
+    };
+  }, []);
 
   const handleAddWidget = (type: WidgetType) => {
     console.log('handleAddWidget clicked with type:', type);
@@ -33,6 +47,20 @@ export function Toolbar() {
   const handleEditToggle = () => {
     console.log('Edit button clicked, current mode:', editMode);
     setEditMode(!editMode);
+  };
+
+  const handleFullscreenToggle = async () => {
+    try {
+      if (!document.fullscreenElement) {
+        // Enter fullscreen
+        await document.documentElement.requestFullscreen();
+      } else {
+        // Exit fullscreen
+        await document.exitFullscreen();
+      }
+    } catch (error) {
+      console.error('Error toggling fullscreen:', error);
+    }
   };
 
   return (
@@ -83,6 +111,15 @@ export function Toolbar() {
           >
             <Settings className="mr-2 h-4 w-4" />
             {editMode ? 'Done' : 'Edit'}
+          </Button>
+
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={handleFullscreenToggle}
+            title={isFullscreen ? 'Exit Fullscreen' : 'Enter Fullscreen'}
+          >
+            {isFullscreen ? <Minimize2 className="h-5 w-5" /> : <Maximize2 className="h-5 w-5" />}
           </Button>
 
           <Button variant="ghost" size="icon" onClick={toggleMode}>
