@@ -8,8 +8,31 @@ export function Toolbar() {
   const { editMode, setEditMode, createWidget, saveDashboard, currentDashboard } = useDashboard();
   const { mode, toggleMode } = useThemeStore();
 
+  console.log('Toolbar render - editMode:', editMode);
+
   const handleAddWidget = (type: WidgetType) => {
-    createWidget(type);
+    console.log('handleAddWidget clicked with type:', type);
+    try {
+      createWidget(type);
+      console.log('Widget created successfully');
+    } catch (error) {
+      console.error('Error creating widget:', error);
+    }
+  };
+
+  const handleSave = () => {
+    console.log('Save button clicked');
+    try {
+      saveDashboard();
+      console.log('Save completed');
+    } catch (error) {
+      console.error('Error saving dashboard:', error);
+    }
+  };
+
+  const handleEditToggle = () => {
+    console.log('Edit button clicked, current mode:', editMode);
+    setEditMode(!editMode);
   };
 
   return (
@@ -42,7 +65,7 @@ export function Toolbar() {
                 <Plus className="mr-2 h-4 w-4" />
                 Table
               </Button>
-              <Button variant="outline" size="sm" onClick={saveDashboard}>
+              <Button variant="outline" size="sm" onClick={handleSave}>
                 <Save className="mr-2 h-4 w-4" />
                 Save
               </Button>
@@ -52,7 +75,7 @@ export function Toolbar() {
           <Button
             variant={editMode ? 'default' : 'outline'}
             size="sm"
-            onClick={() => setEditMode(!editMode)}
+            onClick={handleEditToggle}
           >
             <Settings className="mr-2 h-4 w-4" />
             {editMode ? 'Done' : 'Edit'}

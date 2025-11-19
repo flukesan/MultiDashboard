@@ -1,4 +1,4 @@
-import { RestDataSourceConfig, DataTransformer, ApiResponse } from '@/types';
+import { RestDataSourceConfig, DataTransformer } from '@/types';
 import { BaseDataSourceAdapter } from './base-adapter';
 
 /**

@@ -51,16 +51,24 @@ export const useDashboardStore = create<DashboardStore>((set, get) => ({
 
   // Add new widget
   addWidget: (widget) => {
+    console.log('addWidget called with:', widget);
     const current = get().currentDashboard;
-    if (!current) return;
+    if (!current) {
+      console.error('No current dashboard!');
+      return;
+    }
+
+    const newWidgets = [...current.widgets, widget];
+    console.log('New widgets array:', newWidgets);
 
     set({
       currentDashboard: {
         ...current,
-        widgets: [...current.widgets, widget],
+        widgets: newWidgets,
         updatedAt: new Date(),
       },
     });
+    console.log('Widget added successfully');
   },
 
   // Remove widget
@@ -108,7 +116,9 @@ export const useDashboardStore = create<DashboardStore>((set, get) => ({
 
   // Toggle edit mode
   setEditMode: (editMode) => {
+    console.log('setEditMode called:', editMode);
     set({ editMode, selectedWidgetId: editMode ? get().selectedWidgetId : null });
+    console.log('Edit mode set to:', editMode);
   },
 
   // Select widget
@@ -118,12 +128,17 @@ export const useDashboardStore = create<DashboardStore>((set, get) => ({
 
   // Save dashboard to localStorage
   saveDashboard: () => {
+    console.log('saveDashboard called');
     const dashboard = get().currentDashboard;
-    if (!dashboard) return;
+    if (!dashboard) {
+      console.error('No dashboard to save!');
+      return;
+    }
 
     const saved = storage.get<Record<string, Dashboard>>(STORAGE_KEY, {});
     saved[dashboard.id] = dashboard;
     storage.set(STORAGE_KEY, saved);
+    console.log('Dashboard saved successfully:', dashboard.id);
   },
 
   // Load dashboard from localStorage

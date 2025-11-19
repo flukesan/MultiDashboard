@@ -10,8 +10,14 @@ export function useDashboard() {
   const store = useDashboardStore();
 
   const createWidget = (type: Widget['type']) => {
+    console.log('createWidget called with type:', type);
+
     const definition = widgetRegistry.get(type);
+    console.log('Widget definition found:', definition);
+
     if (!definition) {
+      console.error(`Widget type "${type}" not found in registry`);
+      console.log('Available widgets:', widgetRegistry.getAll().map(w => w.type));
       throw new Error(`Unknown widget type: ${type}`);
     }
 
@@ -33,6 +39,7 @@ export function useDashboard() {
       },
     };
 
+    console.log('Adding new widget:', newWidget);
     store.addWidget(newWidget);
     return newWidget;
   };
