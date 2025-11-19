@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Widget } from '@/types';
-import { ChartWidget, NumberWidget, TableWidget } from '@/components/widgets';
+import { ChartWidget, NumberWidget, TableWidget, MapWidget } from '@/components/widgets';
 import { useWidget } from '@/hooks';
 import { WidgetSettingsModal } from '@/components/common/WidgetSettingsModal';
 
@@ -55,11 +55,7 @@ export function WidgetRenderer({ widget, editMode }: WidgetRendererProps) {
         );
 
       case 'map':
-        return (
-          <div className="flex h-full items-center justify-center rounded-lg border border-dashed">
-            <p className="text-muted-foreground">Map widget (Coming soon)</p>
-          </div>
-        );
+        return <MapWidget {...commonProps} config={widget.config as any} />;
 
       default:
         return (
