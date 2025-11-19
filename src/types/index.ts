@@ -4,9 +4,11 @@
 
 // ============== Widget Types ==============
 
-export type WidgetType = 'chart' | 'number' | 'map' | 'table' | 'text' | 'custom';
+export type WidgetType = 'chart' | 'number' | 'map' | 'table' | 'text' | 'custom' | 'scada' | 'gauge' | 'bargauge' | 'heatmap';
 
 export type ChartType = 'line' | 'bar' | 'pie' | 'area' | 'scatter' | 'radar';
+
+export type ScadaEquipmentType = 'tank' | 'pump' | 'valve' | 'motor' | 'sensor';
 
 export interface BaseWidgetConfig {
   title?: string;

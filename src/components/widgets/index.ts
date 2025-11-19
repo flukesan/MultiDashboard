@@ -3,3 +3,4 @@ export { ChartWidget } from './ChartWidget';
 export { NumberWidget } from './NumberWidget';
 export { TableWidget } from './TableWidget';
 export { MapWidget } from './MapWidget';
+export { ScadaWidget } from './ScadaWidget';
