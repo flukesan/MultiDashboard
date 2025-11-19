@@ -20,7 +20,7 @@ interface BaseWidgetProps {
 }
 
 export function BaseWidget({
-  id,
+  id: _id,
   config,
   children,
   isLoading,

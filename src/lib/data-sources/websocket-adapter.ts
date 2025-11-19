@@ -10,7 +10,7 @@ export class WebSocketDataSourceAdapter extends BaseDataSourceAdapter<WebSocketD
   private messageQueue: unknown[] = [];
   private reconnectAttempts = 0;
   private maxReconnectAttempts = 5;
-  private reconnectTimer?: NodeJS.Timeout;
+  private reconnectTimer?: ReturnType<typeof setTimeout>;
 
   constructor(config: WebSocketDataSourceConfig, transformer?: DataTransformer) {
     super(config, transformer);
@@ -34,7 +34,7 @@ export class WebSocketDataSourceAdapter extends BaseDataSourceAdapter<WebSocketD
         if (this.socket) {
           this.socket.onmessage = (event) => {
             clearTimeout(timeout);
-            originalOnMessage?.call(this.socket, event);
+            originalOnMessage?.call(this.socket!, event);
 
             try {
               const data = JSON.parse(event.data);
