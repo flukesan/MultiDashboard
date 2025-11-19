@@ -51,6 +51,7 @@ export function DialogContent({ children, className }: DialogContentProps) {
         'relative w-full max-w-lg rounded-lg border bg-background p-6 shadow-lg',
         className
       )}
+      onClick={(e) => e.stopPropagation()}
     >
       {children}
     </div>

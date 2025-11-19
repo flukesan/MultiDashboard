@@ -13,6 +13,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { DataSourceConfig } from './DataSourceConfig';
 import { ScadaConfig } from './ScadaConfig';
+import { MapConfig } from './MapConfig';
 
 interface WidgetSettingsModalProps {
   widget: Widget;
@@ -38,6 +39,13 @@ export function WidgetSettingsModal({
       ? (widget.config as any).scadaConfig
       : null
   );
+  const [mapConfig, setMapConfig] = useState<any>(
+    widget.type === 'map' ? {
+      center: (widget.config as any).center,
+      zoom: (widget.config as any).zoom,
+      markerColor: (widget.config as any).markerColor,
+    } : null
+  );
 
   const handleSave = () => {
     const updates: Partial<Widget> = {
@@ -46,6 +54,7 @@ export function WidgetSettingsModal({
         title,
         description,
         ...(widget.type === 'scada' && scadaConfig ? { scadaConfig } : {}),
+        ...(widget.type === 'map' && mapConfig ? mapConfig : {}),
       },
     };
 
@@ -99,6 +108,16 @@ export function WidgetSettingsModal({
               <h3 className="text-sm font-medium mb-3">SCADA Configuration</h3>
               <div className="border rounded-lg p-4 bg-muted/30">
                 <ScadaConfig value={scadaConfig} onChange={setScadaConfig} />
+              </div>
+            </div>
+          )}
+
+          {/* Map Configuration - only for Map widgets */}
+          {widget.type === 'map' && (
+            <div className="border-t pt-4">
+              <h3 className="text-sm font-medium mb-3">Map Configuration</h3>
+              <div className="border rounded-lg p-4 bg-muted/30">
+                <MapConfig value={mapConfig} onChange={setMapConfig} />
               </div>
             </div>
           )}
