@@ -1,7 +1,9 @@
 import { useEffect } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Dashboard } from '@/pages/Dashboard';
+import { HomePage } from '@/pages/HomePage';
 import { useDashboardStore } from '@/store/dashboard-store';
+import { useHomePageStore } from '@/store/homepage-store';
 import { DEMO_DASHBOARD } from '@/config/demo-data';
 
 // Create a client
@@ -15,12 +17,14 @@ const queryClient = new QueryClient({
 });
 
 function App() {
-  const { dashboards, loadDashboards, createDashboard, updateDashboard } = useDashboardStore();
+  const { dashboards, currentDashboardId, loadDashboards, createDashboard, updateDashboard, navigateToHome } = useDashboardStore();
+  const { loadConfig } = useHomePageStore();
 
-  // Load dashboards on first mount
+  // Load data on first mount
   useEffect(() => {
     loadDashboards();
-  }, [loadDashboards]);
+    loadConfig();
+  }, [loadDashboards, loadConfig]);
 
   // Create demo dashboard if no dashboards exist
   useEffect(() => {
@@ -39,9 +43,17 @@ function App() {
     }
   }, [dashboards, createDashboard, updateDashboard]);
 
+  // Determine which view to show
+  // Show HomePage if no dashboard is selected, otherwise show Dashboard
+  const showHomePage = !currentDashboardId;
+
   return (
     <QueryClientProvider client={queryClient}>
-      <Dashboard />
+      {showHomePage ? (
+        <HomePage />
+      ) : (
+        <Dashboard onNavigateHome={navigateToHome} />
+      )}
     </QueryClientProvider>
   );
 }

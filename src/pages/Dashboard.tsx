@@ -5,7 +5,11 @@ import { LayoutDashboard } from 'lucide-react';
 import { useDashboard, useAutoRotate } from '@/hooks';
 import { Button } from '@/components/ui/button';
 
-export function Dashboard() {
+interface DashboardProps {
+  onNavigateHome?: () => void;
+}
+
+export function Dashboard({ onNavigateHome }: DashboardProps) {
   const { currentDashboard, editMode, createWidget } = useDashboard();
 
   // Enable auto-rotate functionality
@@ -19,7 +23,7 @@ export function Dashboard() {
 
   return (
     <div className="flex h-screen flex-col">
-      <Toolbar />
+      <Toolbar onNavigateHome={onNavigateHome} />
 
       <div className="flex-1 overflow-auto" data-dashboard-container>
         {/* Remove container and use minimal padding for full-screen display */}
