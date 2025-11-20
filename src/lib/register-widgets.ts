@@ -9,6 +9,8 @@ import {
   NumberWidget,
   TableWidget,
   ScadaWidget,
+  SankeyWidget,
+  PieChartWidget,
   RobotStatusWidget,
   RobotPositionWidget,
   RobotJointWidget,
@@ -164,6 +166,56 @@ widgetRegistry.register({
     minW: 3,
     minH: 4,
     maxW: 6,
+    maxH: 8,
+  },
+});
+
+// ============== Chart Widgets ==============
+
+// Register Sankey Diagram Widget
+widgetRegistry.register({
+  type: 'sankey',
+  name: 'Sankey Diagram',
+  description: 'Visualize flow and relationships between data points',
+  icon: 'GitBranch',
+  component: SankeyWidget,
+  defaultConfig: {
+    title: 'Flow Diagram',
+    showHeader: true,
+    showBorder: true,
+  },
+  defaultLayout: {
+    w: 6,
+    h: 6,
+    minW: 4,
+    minH: 4,
+    maxW: 12,
+    maxH: 10,
+  },
+});
+
+// Register Pie Chart Widget
+widgetRegistry.register({
+  type: 'piechart',
+  name: 'Pie Chart',
+  description: 'Display proportional data in a circular chart',
+  icon: 'PieChart',
+  component: PieChartWidget,
+  defaultConfig: {
+    title: 'Distribution',
+    showLegend: true,
+    showLabels: true,
+    innerRadius: 0, // 0 for pie, 50 for donut
+    colors: ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#06b6d4', '#84cc16'],
+    showHeader: true,
+    showBorder: true,
+  },
+  defaultLayout: {
+    w: 4,
+    h: 5,
+    minW: 3,
+    minH: 4,
+    maxW: 8,
     maxH: 8,
   },
 });

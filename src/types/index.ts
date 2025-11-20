@@ -5,7 +5,8 @@
 // ============== Widget Types ==============
 
 export type WidgetType = 'chart' | 'number' | 'map' | 'table' | 'text' | 'custom' | 'scada' | 'gauge' | 'bargauge' | 'heatmap'
-  | 'robot-status' | 'robot-position' | 'robot-joint' | 'robot-io' | 'robot-speed' | 'robot-error';
+  | 'robot-status' | 'robot-position' | 'robot-joint' | 'robot-io' | 'robot-speed' | 'robot-error'
+  | 'sankey' | 'piechart';
 
 export type ChartType = 'line' | 'bar' | 'pie' | 'area' | 'scatter' | 'radar';
 
