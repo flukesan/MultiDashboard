@@ -6,6 +6,8 @@ import {
   TableWidget,
   MapWidget,
   ScadaWidget,
+  SankeyWidget,
+  PieChartWidget,
   RobotStatusWidget,
   RobotPositionWidget,
   RobotJointWidget,
@@ -71,6 +73,12 @@ export function WidgetRenderer({ widget, editMode }: WidgetRendererProps) {
 
       case 'scada':
         return <ScadaWidget {...commonProps} config={widget.config as any} />;
+
+      case 'sankey':
+        return <SankeyWidget {...commonProps} />;
+
+      case 'piechart':
+        return <PieChartWidget {...commonProps} />;
 
       case 'robot-status':
         return <RobotStatusWidget {...commonProps} />;
